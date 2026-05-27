@@ -4,7 +4,6 @@ import { requireAuth } from "../middleware/auth";
 
 export const prescriptionsRouter = Router();
 
-// GET /api/prescriptions — patient sees their own records
 prescriptionsRouter.get("/", requireAuth, async (req, res) => {
   try {
     const { rows } = await db.query(
@@ -21,16 +20,13 @@ prescriptionsRouter.get("/", requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/prescriptions — doctor saves notes after visit
 prescriptionsRouter.post("/", requireAuth, async (req, res) => {
   try {
     const { appointment_id, patient_id, notes, prescription } = req.body;
-    const doctor_id = req.user!.id;
-
     const { rows } = await db.query(
       `INSERT INTO prescriptions (appointment_id, patient_id, doctor_id, notes, prescription)
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [appointment_id, patient_id, doctor_id, notes, prescription]
+      [appointment_id, patient_id, req.user!.id, notes, prescription]
     );
     await db.query(
       "UPDATE appointments SET status = 'completed' WHERE id = $1",
@@ -38,6 +34,6 @@ prescriptionsRouter.post("/", requireAuth, async (req, res) => {
     );
     res.status(201).json(rows[0]);
   } catch (err) {
-    res.status(500).json({ error: "Failed to save notes" });
+    res.status(500).json({ error: "Failed to save" });
   }
 });
