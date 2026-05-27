@@ -15,13 +15,16 @@ function Appts() {
   const auth = useRequireAuth();
   const { data = [], refetch } = useQuery({
     queryKey: ["my-appts"],
+    // This is what it becomes — calls YOUR backend instead
     queryFn: async () => {
-      const { data } = await supabase.from("appointments")
-        .select("id, scheduled_at, status, reason, doctors(full_name, specialization)")
-        .order("scheduled_at", { ascending: false });
-      return data ?? [];
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+    
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/appointments`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return res.json();
     },
-  });
 
   const cancel = async (id: string) => {
     if (!confirm("Cancel this appointment?")) return;
