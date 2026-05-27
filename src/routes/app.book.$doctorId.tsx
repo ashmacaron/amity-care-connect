@@ -23,9 +23,15 @@ function Book() {
 
   const { data: doctor } = useQuery({
     queryKey: ["doctor", doctorId],
+    // This is what it becomes — calls YOUR backend instead
     queryFn: async () => {
-      const { data } = await supabase.from("doctors").select("*").eq("id", doctorId).single();
-      return data;
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+    
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/appointments`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return res.json();
     },
   });
 
