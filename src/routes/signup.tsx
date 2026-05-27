@@ -15,17 +15,43 @@ function Signup() {
   const [loading, setLoading] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
-    e.preventDefault(); setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    e.preventDefault();
+    setLoading(true);
+  
+    const { data, error } = await supabase.auth.signUp({
       email, password,
-      options: { emailRedirectTo: `${window.location.origin}/app`, data: { full_name: fullName, role } },
+      options: {
+        emailRedirectTo: `${window.location.origin}/app`,
+        data: { full_name: fullName, role }
+      },
     });
+  
+    if (error) {
+      setLoading(false);
+      return toast.error(error.message);
+    }
+  
+    // Create profile row in Railway PostgreSQL
+    if (data.session) {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/profiles/me`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${data.session.access_token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          full_name: fullName,
+          email,
+          role,
+        })
+      });
+    }
+  
     setLoading(false);
-    if (error) return toast.error(error.message);
     toast.success("Account created! Check your email to confirm, then sign in.");
     router.navigate({ to: "/login" });
   };
-
+  
   return (
     <div className="grid min-h-dvh place-items-center bg-hero-gradient px-4 py-8">
       <div className="w-full max-w-md rounded-3xl bg-card p-8 shadow-soft">
