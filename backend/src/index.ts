@@ -7,7 +7,13 @@ import { prescriptionsRouter } from "./routes/prescriptions";
 
 dotenv.config();
 const app = express();
-app.use(cors({ origin: "https://amity-care-connect.ashacipriano.workers.dev" }));
+
+app.use(cors({
+  origin: [
+    "https://amity-care-connect.ashacipriano.workers.dev",
+    "http://localhost:5173"
+  ]
+}));
 app.use(express.json());
 
 app.get("/health", (_, res) => res.json({ status: "ok" }));
@@ -15,4 +21,5 @@ app.use("/api/doctors", doctorsRouter);
 app.use("/api/appointments", appointmentsRouter);
 app.use("/api/prescriptions", prescriptionsRouter);
 
-app.listen(3001, () => console.log("Amity API running on port 3001"));
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => console.log(`Amity API running on port ${PORT}`));
