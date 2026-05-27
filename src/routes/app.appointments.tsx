@@ -28,8 +28,15 @@ function Appts() {
 
   const cancel = async (id: string) => {
     if (!confirm("Cancel this appointment?")) return;
-    const { error } = await supabase.from("appointments").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/appointments/${id}`,
+      {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${session?.access_token}` }
+      }
+    );
+    if (!res.ok) return toast.error("Failed to cancel");
     toast.success("Cancelled.");
     refetch();
   };
