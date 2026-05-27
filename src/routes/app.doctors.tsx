@@ -19,9 +19,10 @@ function Doctors() {
   const { data: doctors = [] } = useQuery({
     queryKey: ["doctors"],
     queryFn: async () => {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/doctors`);
-      const data = await res.json();
-      return data ?? [];
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/doctors`
+      );
+      return res.json();
     },
   });
 
