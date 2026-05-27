@@ -14,11 +14,15 @@ function Records() {
   const auth = useRequireAuth();
   const { data = [] } = useQuery({
     queryKey: ["records"],
+    // This is what it becomes — calls YOUR backend instead
     queryFn: async () => {
-      const { data } = await supabase.from("prescriptions")
-        .select("id, notes, prescription, created_at, doctors(full_name, specialization)")
-        .order("created_at", { ascending: false });
-      return data ?? [];
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+    
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/appointments`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return res.json();
     },
   });
   if (auth.loading) return null;
