@@ -17,11 +17,10 @@ function Records() {
     // This is what it becomes — calls YOUR backend instead
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-    
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/appointments`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/prescriptions`,
+        { headers: { Authorization: `Bearer ${session?.access_token}` } }
+      );
       return res.json();
     },
   });
