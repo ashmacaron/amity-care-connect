@@ -1,0 +1,155 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Amity — calm lavender telehealth design system.
+   All colors in oklch. Tuned for senior-friendly accessibility:
+   large base text, strong contrast, generous spacing. */
+
+@theme inline {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 6px);
+  --radius-2xl: calc(var(--radius) + 12px);
+  --radius-3xl: calc(var(--radius) + 18px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+
+  --shadow-soft: 0 4px 24px -8px oklch(0.45 0.15 290 / 0.18);
+  --shadow-card: 0 2px 12px -4px oklch(0.45 0.15 290 / 0.10);
+  --shadow-glow: 0 0 48px -12px oklch(0.65 0.18 285 / 0.45);
+}
+
+:root {
+  --radius: 1rem;
+
+  --background: oklch(0.985 0.012 295);
+  --foreground: oklch(0.22 0.06 290);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.06 290);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.06 290);
+
+  --primary: oklch(0.55 0.18 285);          /* bluish purple */
+  --primary-foreground: oklch(0.99 0 0);
+  --primary-soft: oklch(0.92 0.05 290);
+
+  --secondary: oklch(0.95 0.025 295);
+  --secondary-foreground: oklch(0.30 0.10 290);
+
+  --muted: oklch(0.96 0.018 295);
+  --muted-foreground: oklch(0.48 0.04 290);
+
+  --accent: oklch(0.88 0.08 290);
+  --accent-foreground: oklch(0.25 0.10 290);
+
+  --destructive: oklch(0.58 0.22 25);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --success: oklch(0.62 0.14 160);
+  --success-foreground: oklch(0.99 0 0);
+
+  --border: oklch(0.90 0.025 290);
+  --input: oklch(0.92 0.022 290);
+  --ring: oklch(0.55 0.18 285);
+
+  --sidebar: oklch(0.97 0.018 295);
+  --sidebar-foreground: oklch(0.25 0.06 290);
+  --sidebar-accent: oklch(0.92 0.05 290);
+  --sidebar-accent-foreground: oklch(0.30 0.12 285);
+  --sidebar-border: oklch(0.90 0.025 290);
+
+  --gradient-hero: linear-gradient(135deg, oklch(0.92 0.05 290) 0%, oklch(0.97 0.02 295) 50%, oklch(0.95 0.04 285) 100%);
+  --gradient-primary: linear-gradient(135deg, oklch(0.55 0.18 285) 0%, oklch(0.48 0.16 270) 100%);
+}
+
+.dark {
+  --background: oklch(0.16 0.04 290);
+  --foreground: oklch(0.97 0.015 295);
+  --card: oklch(0.22 0.05 290);
+  --card-foreground: oklch(0.97 0.015 295);
+  --popover: oklch(0.22 0.05 290);
+  --popover-foreground: oklch(0.97 0.015 295);
+  --primary: oklch(0.72 0.16 285);
+  --primary-foreground: oklch(0.18 0.04 290);
+  --primary-soft: oklch(0.30 0.08 290);
+  --secondary: oklch(0.28 0.05 290);
+  --secondary-foreground: oklch(0.97 0.015 295);
+  --muted: oklch(0.25 0.04 290);
+  --muted-foreground: oklch(0.75 0.03 290);
+  --accent: oklch(0.32 0.08 290);
+  --accent-foreground: oklch(0.97 0.015 295);
+  --destructive: oklch(0.62 0.22 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.65 0.14 160);
+  --success-foreground: oklch(0.99 0 0);
+  --border: oklch(0.30 0.05 290);
+  --input: oklch(0.30 0.05 290);
+  --ring: oklch(0.72 0.16 285);
+  --sidebar: oklch(0.20 0.05 290);
+  --sidebar-foreground: oklch(0.97 0.015 295);
+  --sidebar-accent: oklch(0.30 0.08 290);
+  --sidebar-accent-foreground: oklch(0.97 0.015 295);
+  --sidebar-border: oklch(0.30 0.05 290);
+}
+
+@layer base {
+  * { border-color: var(--color-border); }
+  html { font-size: 17px; }      /* larger base for seniors */
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
+  :focus-visible {
+    outline: 3px solid var(--color-ring);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  /* All interactive elements: minimum tap target */
+  button, a, [role="button"] { min-height: 44px; }
+}
+
+@layer utilities {
+  .bg-hero-gradient { background: var(--gradient-hero); }
+  .bg-primary-gradient { background: var(--gradient-primary); }
+  .shadow-soft { box-shadow: var(--shadow-soft); }
+  .shadow-card { box-shadow: var(--shadow-card); }
+  .shadow-glow { box-shadow: var(--shadow-glow); }
+}
