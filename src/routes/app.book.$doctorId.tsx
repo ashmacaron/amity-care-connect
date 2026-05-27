@@ -35,7 +35,12 @@ function Book() {
     setSaving(true);
     const scheduled_at = new Date(`${date}T${time}`).toISOString();
     const { error } = await supabase.from("appointments").insert({
-      patient_id: auth.userId, doctor_id: doctorId, scheduled_at, reason,
+      doctor_id: doctorId,
+      patient_id: auth.userId,
+      scheduled_at: selectedTime,
+      reason: reason,
+      status: "pending",
+      jitsi_room: `amity-${crypto.randomUUID()}`,
     });
     setSaving(false);
     if (error) return toast.error(error.message);
