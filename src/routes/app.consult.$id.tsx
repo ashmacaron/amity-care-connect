@@ -33,11 +33,24 @@ function Consult() {
 
   const saveNotes = async () => {
     if (!appt) return;
-    const { error } = await supabase.from("prescriptions").insert({
-      appointment_id: appt.id, patient_id: appt.patient_id, doctor_id: appt.doctor_id, notes, prescription: rx,
-    });
-    if (error) return toast.error(error.message);
-    await supabase.from("appointments").update({ status: "completed" }).eq("id", appt.id);
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/prescriptions`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          appointment_id: appt.id,
+          patient_id: appt.patient_id,
+          notes,
+          prescription: rx
+        })
+      }
+    );
+    if (!res.ok) return toast.error("Failed to save");
     toast.success("Notes saved & visit completed.");
     setNotes(""); setRx("");
   };
