@@ -17,11 +17,15 @@ function Consult() {
   const { id } = useParams({ from: "/app/consult/$id" });
   const { data: appt } = useQuery({
     queryKey: ["appt", id],
+    // This is what it becomes — calls YOUR backend instead
     queryFn: async () => {
-      const { data } = await supabase.from("appointments")
-        .select("id, scheduled_at, jitsi_room, reason, patient_id, doctor_id, doctors(full_name, specialization, user_id)")
-        .eq("id", id).single();
-      return data;
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+    
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/appointments`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return res.json();
     },
   });
   const [notes, setNotes] = useState("");
