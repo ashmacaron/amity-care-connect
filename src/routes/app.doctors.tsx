@@ -19,7 +19,8 @@ function Doctors() {
   const { data: doctors = [] } = useQuery({
     queryKey: ["doctors"],
     queryFn: async () => {
-      const { data } = await supabase.from("doctors").select("*").order("rating", { ascending: false });
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/doctors`);
+      const data = await res.json();
       return data ?? [];
     },
   });
