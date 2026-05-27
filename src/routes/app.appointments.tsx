@@ -25,6 +25,7 @@ function Appts() {
       });
       return res.json();
     },
+  });
 
   const cancel = async (id: string) => {
     if (!confirm("Cancel this appointment?")) return;
