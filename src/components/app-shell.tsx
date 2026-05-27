@@ -1,5 +1,9 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { LogOut } from "lucide-react";
+import { useRouter } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
+
 import {
     Home, Search, Sparkles, CalendarDays, FileText, User, LogOut,
     Stethoscope, ClipboardList, Clock, Video,
@@ -36,6 +40,7 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
         });
     }, []);
 
+    const router = useRouter();
     const signOut = async () => {
         await supabase.auth.signOut();
         router.navigate({ to: "/" });
@@ -76,11 +81,14 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
                             })}
                         </nav>
                         <button
-                            onClick={signOut}
-                            className="mt-auto hidden lg:flex items-center gap-3 rounded-xl px-4 py-3 text-base font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+                          onClick={signOut}
+                          className="mt-auto flex w-full items-center gap-3 rounded-xl px-4 py-3 
+                                     text-base font-medium text-muted-foreground 
+                                     hover:bg-destructive hover:text-destructive-foreground 
+                                     transition-colors"
                         >
-                            <LogOut className="h-5 w-5" aria-hidden />
-                            Sign out
+                          <LogOut className="h-5 w-5" />
+                          Sign out
                         </button>
                     </div>
                 </aside>
