@@ -15,13 +15,14 @@ const SPECIALIZATIONS = [
 ];
 
 /**
- * Use Lovable AI (Gemini) to recommend a specialization based on symptoms.
+ * Use Google Gemini API directly to recommend a specialization based on symptoms.
  * Returns specialization + short, friendly reasoning.
  */
 export const recommendSpecialization = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => InputSchema.parse(input))
   .handler(async ({ data }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
+    // 1. Update the environment variable key
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return {
         specialization: "General Practitioner",
@@ -29,39 +30,50 @@ export const recommendSpecialization = createServerFn({ method: "POST" })
       };
     }
 
-    const system = `You are Amity, a kind, careful triage assistant. You are NOT a doctor and never give a diagnosis. Given a patient's described symptoms, choose ONE specialization from this list that is most appropriate to consult first: ${SPECIALIZATIONS.join(", ")}. Reply ONLY with strict JSON: {"specialization": "<one of the list>", "reason": "<one short friendly sentence under 30 words, plain language>"}. If symptoms suggest a real emergency (chest pain with shortness of breath, stroke signs, severe bleeding, suicidal thoughts), still pick the closest specialization but begin reason with "Please call emergency services. ".`;
+    const systemInstruction = `You are Amity, a kind, careful triage assistant. You are NOT a doctor and never give a diagnosis. Given a patient's described symptoms, choose ONE specialization from this list that is most appropriate to consult first: ${SPECIALIZATIONS.join(", ")}. Reply ONLY with strict JSON: {"specialization": "<one of the list>", "reason": "<one short friendly sentence under 30 words, plain language>"}. If symptoms suggest a real emergency (chest pain with shortness of breath, stroke signs, severe bleeding, suicidal thoughts), still pick the closest specialization but begin reason with "Please call emergency services. ".`;
 
     try {
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      // 2. Direct Google Gemini endpoint (using gemini-2.5-flash as the standard stable model)
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
-          messages: [
-            { role: "system", content: system },
-            { role: "user", content: data.symptoms },
+          // Move system prompt into systemInstruction array per Gemini's API spec
+          systemInstruction: {
+            parts: [{ text: systemInstruction }]
+          },
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: data.symptoms }],
+            },
           ],
-          response_format: { type: "json_object" },
+          generationConfig: {
+            // Enforce structured JSON output
+            responseMimeType: "application/json",
+          },
         }),
       });
 
       if (!res.ok) {
         const text = await res.text();
-        console.error("AI gateway error", res.status, text);
+        console.error("Gemini API error", res.status, text);
         if (res.status === 429) throw new Error("Too many requests right now. Please try again in a minute.");
-        if (res.status === 402) throw new Error("AI usage limit reached. Please add credits in workspace settings.");
         throw new Error("AI service unavailable.");
       }
 
       const json = await res.json();
-      const content: string = json?.choices?.[0]?.message?.content ?? "{}";
+      
+      // 3. Update data extraction mapping to handle Gemini's response schema
+      const content = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}";
       const parsed = JSON.parse(content);
+      
       const specialization = SPECIALIZATIONS.includes(parsed.specialization)
         ? parsed.specialization
         : "General Practitioner";
+        
       return {
         specialization,
         reason: typeof parsed.reason === "string" ? parsed.reason : "A good first step for what you described.",
