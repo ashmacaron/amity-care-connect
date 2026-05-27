@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Heart, Sparkles, Video, ShieldCheck } from "lucide-react";
 import heroImg from "@/assets/hero.jpg";
+import { profilesRouter } from "./routes/profiles";
 
 export const Route = createFileRoute("/")({
   head: () => ({
