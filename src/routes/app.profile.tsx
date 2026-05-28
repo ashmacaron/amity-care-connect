@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { User } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/app-shell";
@@ -13,11 +13,13 @@ export const Route = createFileRoute("/app/profile")({
 
 function Profile() {
   const auth = useRequireAuth();
+  const router = useRouter();
   const [p, setP] = useState<any>({
     full_name: "", birthday: "", weight_kg: "",
     height_cm: "", phone: "", address: "", medical_history: ""
   });
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!auth.userId) return;
@@ -28,7 +30,7 @@ function Profile() {
         { headers: { Authorization: `Bearer ${session?.access_token}` } }
       );
       const data = await res.json();
-      if (data) setP({ ...p, ...data, birthday: data.birthday ?? "" });
+      if (data) setP((prev: any) => ({ ...prev, ...data, birthday: data.birthday ?? "" }));
     };
     load();
   }, [auth.userId]);
@@ -54,6 +56,25 @@ function Profile() {
     toast.success("Profile saved.");
   };
 
+  const deleteAccount = async () => {
+    if (!confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
+    setDeleting(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/profiles/me`,
+      {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${session?.access_token}` }
+      }
+    );
+    if (!res.ok) {
+      setDeleting(false);
+      return toast.error("Failed to delete account");
+    }
+    await supabase.auth.signOut();
+    router.navigate({ to: "/" });
+  };
+
   if (auth.loading) return null;
   return (
     <AppShell role={auth.role ?? "patient"}>
@@ -69,47 +90,25 @@ function Profile() {
         ].map((f) => (
           <label key={f.k} className="block">
             <span className="mb-1 block font-medium">{f.label}</span>
-            <input
-              type={f.type}
-              value={p[f.k] ?? ""}
+            <input type={f.type} value={p[f.k] ?? ""}
               onChange={(e) => setP({ ...p, [f.k]: e.target.value })}
-              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base"
-            />
+              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base" />
           </label>
         ))}
         <label className="block">
           <span className="mb-1 block font-medium">Basic medical history</span>
-          <textarea
-            rows={4}
-            value={p.medical_history ?? ""}
+          <textarea rows={4} value={p.medical_history ?? ""}
             onChange={(e) => setP({ ...p, medical_history: e.target.value })}
             placeholder="Allergies, conditions, medications…"
-            className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base"
-          />
+            className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base" />
         </label>
-        <button
-          disabled={saving}
-          className="w-full rounded-xl bg-primary py-4 text-lg font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
-        >
+        <button disabled={saving}
+          className="w-full rounded-xl bg-primary py-4 text-lg font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60">
           {saving ? "Saving…" : "Save"}
         </button>
-        <button
-          type="button"
-          onClick={async () => {
-            if (!confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
-            const { data: { session } } = await supabase.auth.getSession();
-            await fetch(`${import.meta.env.VITE_API_URL}/api/profiles/me`, {
-              method: "DELETE",
-              headers: { Authorization: `Bearer ${session?.access_token}` }
-            });
-            await supabase.auth.signOut();
-            router.navigate({ to: "/" });
-          }}
-          className="w-full rounded-xl border border-destructive py-4 text-lg 
-                     font-semibold text-destructive hover:bg-destructive 
-                     hover:text-destructive-foreground transition-colors"
-        >
-          Delete account
+        <button type="button" onClick={deleteAccount} disabled={deleting}
+          className="w-full rounded-xl border border-destructive py-4 text-lg font-semibold text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors disabled:opacity-60">
+          {deleting ? "Deleting…" : "Delete account"}
         </button>
       </form>
     </AppShell>
