@@ -11,7 +11,13 @@ import { scheduleRouter } from "./routes/schedule";
 dotenv.config();
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    "https://amity-care-connect.ashacipriano.workers.dev",
+    "http://localhost:5173",
+    /\.ashacipriano\.workers\.dev$/  // catches any subdomain variations
+  ]
+}));
 app.use(express.json());
 
 app.get("/health", (_, res) => res.json({ status: "ok" }));
