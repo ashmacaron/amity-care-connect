@@ -21,10 +21,11 @@ function Signup() {
     setLoading(true);
 
     const { data, error } = await supabase.auth.signUp({
-      email, password,
+      email,
+      password,
       options: {
         emailRedirectTo: `${window.location.origin}/app`,
-        data: { full_name: fullName, role }
+        data: { full_name: fullName, role },
       },
     });
 
@@ -33,19 +34,12 @@ function Signup() {
       return toast.error(error.message);
     }
 
-    // Store profile with encrypted password in Railway
     const userId = data.user?.id;
     if (userId) {
       await fetch(`${import.meta.env.VITE_API_URL}/api/profiles/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: userId,
-          full_name: fullName,
-          email,
-          role,
-          password,
-        })
+        body: JSON.stringify({ id: userId, full_name: fullName, email, role, password }),
       });
     }
 
@@ -73,20 +67,17 @@ function Signup() {
           </div>
           <label className="block">
             <span className="mb-1 block text-base font-medium">Full name</span>
-            <input required value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+            <input required value={fullName} onChange={(e) => setFullName(e.target.value)}
               className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base" />
           </label>
           <label className="block">
             <span className="mb-1 block text-base font-medium">Email</span>
-            <input type="email" required value={email}
-              onChange={(e) => setEmail(e.target.value)}
+            <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base" />
           </label>
           <label className="block">
             <span className="mb-1 block text-base font-medium">Password</span>
-            <input type="password" required minLength={6} value={password}
-              onChange={(e) => setPassword(e.target.value)}
+            <input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base" />
           </label>
           <button disabled={loading}
