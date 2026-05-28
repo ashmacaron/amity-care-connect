@@ -51,10 +51,17 @@ profilesRouter.post("/signup", async (req, res) => {
 
 profilesRouter.delete("/me", requireAuth, async (req, res) => {
   try {
+    // 1. Delete from Railway PostgreSQL
     await db.query("DELETE FROM profiles WHERE id = $1", [req.user!.id]);
+
+    // 2. Delete from Supabase Auth using service role key
+    const { error } = await supabase.auth.admin.deleteUser(req.user!.id);
+    if (error) console.error("Supabase delete error:", error.message);
+
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: "Failed to delete profile" });
+    console.error("Delete account error:", err);
+    res.status(500).json({ error: "Failed to delete account" });
   }
 });
 
