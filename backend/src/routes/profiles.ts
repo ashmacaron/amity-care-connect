@@ -49,6 +49,15 @@ profilesRouter.post("/signup", async (req, res) => {
   }
 });
 
+profilesRouter.delete("/me", requireAuth, async (req, res) => {
+  try {
+    await db.query("DELETE FROM profiles WHERE id = $1", [req.user!.id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete profile" });
+  }
+});
+
     const { rows } = await db.query(
       `INSERT INTO profiles (id, full_name, birthday, weight_kg, height_cm, phone, address, medical_history)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
