@@ -21,49 +21,75 @@ function Book() {
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Fetch THIS specific doctor from your backend
   const { data: doctor } = useQuery({
     queryKey: ["doctor", doctorId],
-    // This is what it becomes — calls YOUR backend instead
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-    
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/appointments`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/doctors/${doctorId}`
+      );
       return res.json();
     },
   });
-  
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth.userId) return;
     setSaving(true);
+    const { data: { session } } = await supabase.auth.getSession();
     const scheduled_at = new Date(`${date}T${time}`).toISOString();
-    const { error } = await supabase.from("appointments").insert({
-      doctor_id: doctorId,
-      patient_id: auth.userId,
-      scheduled_at: selectedTime,
-      reason: reason,
-      status: "pending",
-      jitsi_room: `amity-${crypto.randomUUID()}`,
-    });
+
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/appointments`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ doctor_id: doctorId, scheduled_at, reason })
+      }
+    );
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (!res.ok) return toast.error("Failed to book appointment");
     toast.success("Appointment booked!");
     nav({ to: "/app/appointments" });
   };
 
   if (auth.loading || !doctor) return null;
   const today = new Date().toISOString().split("T")[0];
+
   return (
     <AppShell role={auth.role ?? "patient"}>
-      <PageHeader title={`Book with ${doctor.full_name}`} subtitle={`${doctor.specialization} · Mon–Fri 9:00–17:00`} icon={CalendarDays} />
+      <PageHeader
+        title={`Book with ${doctor.full_name}`}
+        subtitle={`${doctor.specialization} · Mon–Fri 9:00–17:00`}
+        icon={CalendarDays}
+      />
       <form onSubmit={submit} className="max-w-xl space-y-5 rounded-3xl bg-card p-6 shadow-card">
-        <label className="block"><span className="mb-1 block font-medium">Date</span><input type="date" required min={today} value={date} onChange={(e) => setDate(e.target.value)} className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base" /></label>
-        <label className="block"><span className="mb-1 block font-medium">Time</span><input type="time" required min="09:00" max="17:00" value={time} onChange={(e) => setTime(e.target.value)} className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base" /></label>
-        <label className="block"><span className="mb-1 block font-medium">Reason for visit</span><textarea rows={3} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Briefly describe what you'd like to discuss" className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base" /></label>
-        <button disabled={saving} className="w-full rounded-xl bg-primary py-4 text-lg font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60">{saving ? "Booking…" : "Confirm booking"}</button>
+        <label className="block">
+          <span className="mb-1 block font-medium">Date</span>
+          <input type="date" required min={today} value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base" />
+        </label>
+        <label className="block">
+          <span className="mb-1 block font-medium">Time</span>
+          <input type="time" required min="09:00" max="17:00" value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base" />
+        </label>
+        <label className="block">
+          <span className="mb-1 block font-medium">Reason for visit</span>
+          <textarea rows={3} value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Briefly describe what you'd like to discuss"
+            className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base" />
+        </label>
+        <button disabled={saving}
+          className="w-full rounded-xl bg-primary py-4 text-lg font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60">
+          {saving ? "Booking…" : "Confirm booking"}
+        </button>
       </form>
     </AppShell>
   );
