@@ -63,3 +63,21 @@ appointmentsRouter.get("/:id", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to fetch appointment" });
   }
 });
+
+// GET /api/appointments/doctor/mine — doctor sees their own appointments
+appointmentsRouter.get("/doctor/mine", requireAuth, async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      `SELECT a.*, p.full_name as patient_name
+       FROM appointments a
+       LEFT JOIN profiles p ON p.id = a.patient_id
+       JOIN doctors d ON d.id = a.doctor_id
+       WHERE d.user_id = $1
+       ORDER BY a.scheduled_at DESC`,
+      [req.user!.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch appointments" });
+  }
+});
