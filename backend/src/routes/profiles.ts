@@ -1,13 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
 import { Router } from "express";
 import { db } from "../db";
 import { requireAuth } from "../middleware/auth";
 import bcrypt from "bcryptjs";
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-);
 
 export const profilesRouter = Router();
 
