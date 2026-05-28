@@ -23,10 +23,19 @@ prescriptionsRouter.get("/", requireAuth, async (req, res) => {
 prescriptionsRouter.post("/", requireAuth, async (req, res) => {
   try {
     const { appointment_id, patient_id, notes, prescription } = req.body;
+
+    // Get the doctor's id from the doctors table using the Supabase user id
+    const { rows: doctorRows } = await db.query(
+      "SELECT id FROM doctors WHERE user_id = $1",
+      [req.user!.id]
+    );
+    if (!doctorRows[0]) return res.status(403).json({ error: "Doctor profile not found" });
+    const doctor_id = doctorRows[0].id;
+
     const { rows } = await db.query(
       `INSERT INTO prescriptions (appointment_id, patient_id, doctor_id, notes, prescription)
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [appointment_id, patient_id, req.user!.id, notes, prescription]
+      [appointment_id, patient_id, doctor_id, notes, prescription]
     );
     await db.query(
       "UPDATE appointments SET status = 'completed' WHERE id = $1",
@@ -34,6 +43,7 @@ prescriptionsRouter.post("/", requireAuth, async (req, res) => {
     );
     res.status(201).json(rows[0]);
   } catch (err) {
+    console.error("POST prescription error:", err);
     res.status(500).json({ error: "Failed to save" });
   }
 });
