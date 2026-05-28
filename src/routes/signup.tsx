@@ -34,19 +34,18 @@ function Signup() {
       return toast.error(error.message);
     }
 
-    const userId = data.user?.id;
     if (userId) {
-      await fetch(`${import.meta.env.VITE_API_URL}/api/profiles/signup`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/profiles/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: userId,
-          full_name: fullName,
-          email,
-          role,
-          password,
-        }),
+        body: JSON.stringify({ id: userId, full_name: fullName, email, role, password }),
       });
+    
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        console.error("Profile creation failed:", err);
+        toast.error("Account created but profile setup failed. Please contact support.");
+      }
     }
 
     setLoading(false);
