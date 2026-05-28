@@ -4,5 +4,6 @@
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
+  "vars": { "GEMINI_API_KEY": "AIzaSyBOqFyULOc8dBWccYk-LEVMuvfYEVRyuv8" }
 }
 
