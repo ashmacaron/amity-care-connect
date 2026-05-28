@@ -47,7 +47,7 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
     <div className="min-h-dvh bg-background">
       <div className="mx-auto flex max-w-7xl flex-col lg:flex-row">
         {/* Sidebar */}
-        <aside className="lg:sticky lg:top-0 lg:h-dvh lg:w-72 border-b lg:border-b-0 lg:border-r border-sidebar-border bg-sidebar lg:overflow-y-auto">
+        <aside className="relative z-10 lg:sticky lg:top-0 lg:h-dvh lg:w-72 border-b lg:border-b-0 lg:border-r border-sidebar-border bg-sidebar lg:overflow-y-auto">
           <div className="flex min-h-full flex-col gap-1 p-5">
             <Link to="/app" className="mb-4 flex items-center gap-2">
               <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary-gradient text-primary-foreground font-display text-xl font-bold shadow-glow">A</div>
@@ -93,7 +93,7 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
         </aside>
 
         {/* Main */}
-        <div className="flex-1 px-4 py-6 lg:px-10 lg:py-10">
+        <div className="relative z-0 flex-1 px-4 py-6 lg:px-10 lg:py-10">
           {children}
         </div>
       </div>
