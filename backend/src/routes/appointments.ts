@@ -4,6 +4,7 @@ import { requireAuth } from "../middleware/auth";
 
 export const appointmentsRouter = Router();
 
+// GET /api/appointments — patient sees their appointments
 appointmentsRouter.get("/", requireAuth, async (req, res) => {
   try {
     const { rows } = await db.query(
@@ -20,30 +21,21 @@ appointmentsRouter.get("/", requireAuth, async (req, res) => {
   }
 });
 
-appointmentsRouter.post("/", requireAuth, async (req, res) => {
+// GET /api/appointments/doctor/mine — MUST be before /:id
+appointmentsRouter.get("/doctor/mine", requireAuth, async (req, res) => {
   try {
-    const { doctor_id, scheduled_at, reason } = req.body;
-    const jitsi_room = `amity-${crypto.randomUUID()}`;
     const { rows } = await db.query(
-      `INSERT INTO appointments (patient_id, doctor_id, scheduled_at, reason, status, jitsi_room)
-       VALUES ($1, $2, $3, $4, 'pending', $5) RETURNING *`,
-      [req.user!.id, doctor_id, scheduled_at, reason, jitsi_room]
+      `SELECT a.*, p.full_name as patient_name
+       FROM appointments a
+       LEFT JOIN profiles p ON p.id = a.patient_id
+       JOIN doctors d ON d.id = a.doctor_id
+       WHERE d.user_id = $1
+       ORDER BY a.scheduled_at DESC`,
+      [req.user!.id]
     );
-    res.status(201).json(rows[0]);
+    res.json(rows);
   } catch (err) {
-    res.status(500).json({ error: "Failed to book" });
-  }
-});
-
-appointmentsRouter.delete("/:id", requireAuth, async (req, res) => {
-  try {
-    await db.query(
-      "DELETE FROM appointments WHERE id = $1 AND patient_id = $2",
-      [req.params.id, req.user!.id]
-    );
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to cancel" });
+    res.status(500).json({ error: "Failed to fetch appointments" });
   }
 });
 
@@ -64,20 +56,31 @@ appointmentsRouter.get("/:id", requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/appointments/doctor/mine — doctor sees their own appointments
-appointmentsRouter.get("/doctor/mine", requireAuth, async (req, res) => {
+// POST /api/appointments — book an appointment
+appointmentsRouter.post("/", requireAuth, async (req, res) => {
   try {
+    const { doctor_id, scheduled_at, reason } = req.body;
+    const jitsi_room = `amity-${crypto.randomUUID()}`;
     const { rows } = await db.query(
-      `SELECT a.*, p.full_name as patient_name
-       FROM appointments a
-       LEFT JOIN profiles p ON p.id = a.patient_id
-       JOIN doctors d ON d.id = a.doctor_id
-       WHERE d.user_id = $1
-       ORDER BY a.scheduled_at DESC`,
-      [req.user!.id]
+      `INSERT INTO appointments (patient_id, doctor_id, scheduled_at, reason, status, jitsi_room)
+       VALUES ($1, $2, $3, $4, 'pending', $5) RETURNING *`,
+      [req.user!.id, doctor_id, scheduled_at, reason, jitsi_room]
     );
-    res.json(rows);
+    res.status(201).json(rows[0]);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch appointments" });
+    res.status(500).json({ error: "Failed to book" });
+  }
+});
+
+// DELETE /api/appointments/:id — cancel appointment
+appointmentsRouter.delete("/:id", requireAuth, async (req, res) => {
+  try {
+    await db.query(
+      "DELETE FROM appointments WHERE id = $1 AND patient_id = $2",
+      [req.params.id, req.user!.id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to cancel" });
   }
 });
