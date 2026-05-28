@@ -46,3 +46,20 @@ appointmentsRouter.delete("/:id", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to cancel" });
   }
 });
+
+// GET /api/appointments/:id — single appointment
+appointmentsRouter.get("/:id", requireAuth, async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      `SELECT a.*, d.full_name as doctor_name, d.specialization, d.user_id as doctor_user_id
+       FROM appointments a
+       JOIN doctors d ON d.id = a.doctor_id
+       WHERE a.id = $1`,
+      [req.params.id]
+    );
+    if (!rows[0]) return res.status(404).json({ error: "Not found" });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch appointment" });
+  }
+});
