@@ -6,6 +6,7 @@ import { appointmentsRouter } from "./routes/appointments";
 import { prescriptionsRouter } from "./routes/prescriptions";
 import { profilesRouter } from "./routes/profiles";
 import { doctorProfileRouter } from "./routes/doctors-profile";
+import { scheduleRouter } from "./routes/schedule";
 
 dotenv.config();
 const app = express();
@@ -24,6 +25,7 @@ app.use("/api/appointments", appointmentsRouter);
 app.use("/api/prescriptions", prescriptionsRouter);
 app.use("/api/profiles", profilesRouter);
 app.use("/api/doctor-profile", doctorProfileRouter);
+app.use("/api/schedule", scheduleRouter);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Amity API running on port ${PORT}`));
