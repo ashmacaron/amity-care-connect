@@ -12,12 +12,19 @@ function Login() {
   const router = useRouter();
   const [email, setEmail] = useState(""); const [password, setPassword] = useState(""); const [loading, setLoading] = useState(false);
   const submit = async (e: React.FormEvent) => {
-    e.preventDefault(); setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    e.preventDefault();
+    setLoading(true);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return toast.error(error.message);
     toast.success("Welcome back!");
-    router.navigate({ to: "/app" });
+    // Redirect based on role
+    const role = data.user?.user_metadata?.role;
+    if (role === "doctor") {
+      router.navigate({ to: "/app/doctor/appointments" });
+    } else {
+      router.navigate({ to: "/app" });
+    }
   };
   return (
     <div className="grid min-h-dvh place-items-center bg-hero-gradient px-4">
