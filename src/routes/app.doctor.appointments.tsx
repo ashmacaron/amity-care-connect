@@ -12,15 +12,20 @@ export const Route = createFileRoute("/app/doctor/appointments")({
 
 function DocAppts() {
   const auth = useRequireAuth();
+
   const { data = [] } = useQuery({
-    queryKey: ["doc-appts"],
+    queryKey: ["doc-appts", auth.userId],
+    enabled: !!auth.userId,
     queryFn: async () => {
-      const { data } = await supabase.from("appointments")
-        .select("id, scheduled_at, status, reason, patient_id, profiles!appointments_patient_id_fkey(full_name)")
-        .order("scheduled_at", { ascending: false });
-      return data ?? [];
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/appointments/doctor/mine`,
+        { headers: { Authorization: `Bearer ${session?.access_token}` } }
+      );
+      return res.json();
     },
   });
+
   if (auth.loading) return null;
   return (
     <AppShell role="doctor">
@@ -32,11 +37,21 @@ function DocAppts() {
           {data.map((a: any) => (
             <div key={a.id} className="flex items-center justify-between rounded-2xl bg-card p-5 shadow-card">
               <div>
-                <p className="font-display text-lg font-semibold">{a.profiles?.full_name ?? "Patient"}</p>
-                <p className="text-sm">{new Date(a.scheduled_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}</p>
+                <p className="font-display text-lg font-semibold">
+                  {a.patient_name ?? "Patient"}
+                </p>
+                <p className="text-sm">
+                  {new Date(a.scheduled_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
+                </p>
                 {a.reason && <p className="mt-1 text-sm text-muted-foreground">"{a.reason}"</p>}
+                <span className={`mt-1 inline-block rounded-full px-3 py-1 text-xs font-medium ${
+                  a.status === "completed" ? "bg-green-100 text-green-700" :
+                  a.status === "cancelled" ? "bg-red-100 text-red-700" :
+                  "bg-primary-soft text-primary"
+                }`}>{a.status}</span>
               </div>
-              <Link to="/app/consult/$id" params={{ id: a.id }} className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground hover:opacity-90">
+              <Link to="/app/consult/$id" params={{ id: a.id }}
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground hover:opacity-90">
                 <Video className="h-5 w-5" /> Join
               </Link>
             </div>
