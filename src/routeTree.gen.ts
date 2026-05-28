@@ -23,6 +23,7 @@ import { Route as AppDoctorProfileRouteImport } from './routes/app.doctor.profil
 import { Route as AppDoctorAppointmentsRouteImport } from './routes/app.doctor.appointments'
 import { Route as AppConsultIdRouteImport } from './routes/app.consult.$id'
 import { Route as AppBookDoctorIdRouteImport } from './routes/app.book.$doctorId'
+import { createFileRoute } from '@tanstack/react-router'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
