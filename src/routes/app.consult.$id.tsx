@@ -15,21 +15,20 @@ export const Route = createFileRoute("/app/consult/$id")({
 function Consult() {
   const auth = useRequireAuth();
   const { id } = useParams({ from: "/app/consult/$id" });
+  const [notes, setNotes] = useState("");
+  const [rx, setRx] = useState("");
+
   const { data: appt } = useQuery({
     queryKey: ["appt", id],
-    // This is what it becomes — calls YOUR backend instead
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-    
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/appointments`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/appointments/${id}`,
+        { headers: { Authorization: `Bearer ${session?.access_token}` } }
+      );
       return res.json();
     },
   });
-  const [notes, setNotes] = useState("");
-  const [rx, setRx] = useState("");
 
   const saveNotes = async () => {
     if (!appt) return;
@@ -56,12 +55,20 @@ function Consult() {
   };
 
   if (auth.loading || !appt) return null;
-  const isDoctor = auth.role === "doctor" && (appt as any).doctors?.user_id === auth.userId;
-  const room = appt.jitsi_room;
+  const isDoctor = auth.role === "doctor";
+  const room = appt.jitsi_room ?? `amity-fallback-${id}`;
+  const doctorName = appt.doctor_name ?? "your doctor";
+  const apptDate = appt.scheduled_at
+    ? new Date(appt.scheduled_at).toLocaleString(undefined, { dateStyle: "full", timeStyle: "short" })
+    : "";
 
   return (
     <AppShell role={auth.role ?? "patient"}>
-      <PageHeader title={`Visit with ${(appt as any).doctors?.full_name}`} subtitle={new Date(appt.scheduled_at).toLocaleString(undefined, { dateStyle: "full", timeStyle: "short" })} icon={Video} />
+      <PageHeader
+        title={`Visit with Dr. ${doctorName}`}
+        subtitle={apptDate}
+        icon={Video}
+      />
       <div className="overflow-hidden rounded-3xl shadow-soft" style={{ aspectRatio: "16 / 9" }}>
         <iframe
           title="Video consultation"
@@ -70,18 +77,27 @@ function Consult() {
           className="h-full w-full border-0"
         />
       </div>
-      <p className="mt-3 text-sm text-muted-foreground">If video doesn't load, allow camera & microphone in your browser, then refresh.</p>
+      <p className="mt-3 text-sm text-muted-foreground">
+        If video doesn't load, allow camera & microphone in your browser, then refresh.
+      </p>
 
       {isDoctor && (
         <section className="mt-8 rounded-3xl bg-card p-6 shadow-card">
           <h2 className="font-display text-2xl font-semibold">Consultation notes</h2>
-          <label className="mt-4 block"><span className="mb-1 block font-medium">Notes</span>
-            <textarea rows={4} value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base" />
+          <label className="mt-4 block">
+            <span className="mb-1 block font-medium">Notes</span>
+            <textarea rows={4} value={notes} onChange={(e) => setNotes(e.target.value)}
+              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base" />
           </label>
-          <label className="mt-3 block"><span className="mb-1 block font-medium">Prescription</span>
-            <textarea rows={4} value={rx} onChange={(e) => setRx(e.target.value)} className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base" />
+          <label className="mt-3 block">
+            <span className="mb-1 block font-medium">Prescription</span>
+            <textarea rows={4} value={rx} onChange={(e) => setRx(e.target.value)}
+              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base" />
           </label>
-          <button onClick={saveNotes} className="mt-4 rounded-xl bg-primary px-6 py-3 text-lg font-semibold text-primary-foreground hover:opacity-90">Save & finish visit</button>
+          <button onClick={saveNotes}
+            className="mt-4 rounded-xl bg-primary px-6 py-3 text-lg font-semibold text-primary-foreground hover:opacity-90">
+            Save & finish visit
+          </button>
         </section>
       )}
     </AppShell>
