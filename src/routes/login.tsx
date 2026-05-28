@@ -18,27 +18,9 @@ function Login() {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return toast.error(error.message);
-  
-    // Always ensure profile exists in Railway on login
-    const userId = data.user?.id;
-    const fullName = data.user?.user_metadata?.full_name ?? "";
-    const role = data.user?.user_metadata?.role ?? "patient";
-  
-    if (userId) {
-      await fetch(`${import.meta.env.VITE_API_URL}/api/profiles/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: userId,
-          full_name: fullName,
-          email,
-          role,
-          password: "supabase-managed",
-        }),
-      });
-    }
-  
-    toast.success("Welcome back!");
+    toast.success("Welcome!");
+    // Redirect based on role
+    const role = data.user?.user_metadata?.role;
     if (role === "doctor") {
       router.navigate({ to: "/app/doctor/appointments" });
     } else {
