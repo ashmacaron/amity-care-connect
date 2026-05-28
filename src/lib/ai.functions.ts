@@ -23,7 +23,7 @@ export const recommendSpecialization = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     // 1. Update the environment variable key
     //  Change this block at the top of your .handler(async ({ data }) => { ... })
-    const apiKey = process.env.GEMINI_API_KEY ?? (globalThis as any).env?.GEMINI_API_KEY ?? (globalThis as any).GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || (globalThis as any).MINIFLARE_DATA?.env?.GEMINI_API_KEY;
     if (!apiKey) {
       console.warn("API Key missing, falling back to General Practitioner");
       return {
