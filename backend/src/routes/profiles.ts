@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { db } from "../db";
 import { requireAuth } from "../middleware/auth";
+import bcrypt from "bcryptjs";
 
 export const profilesRouter = Router();
 
