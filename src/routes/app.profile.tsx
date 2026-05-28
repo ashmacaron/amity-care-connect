@@ -93,6 +93,24 @@ function Profile() {
         >
           {saving ? "Saving…" : "Save"}
         </button>
+        <button
+          type="button"
+          onClick={async () => {
+            if (!confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
+            const { data: { session } } = await supabase.auth.getSession();
+            await fetch(`${import.meta.env.VITE_API_URL}/api/profiles/me`, {
+              method: "DELETE",
+              headers: { Authorization: `Bearer ${session?.access_token}` }
+            });
+            await supabase.auth.signOut();
+            router.navigate({ to: "/" });
+          }}
+          className="w-full rounded-xl border border-destructive py-4 text-lg 
+                     font-semibold text-destructive hover:bg-destructive 
+                     hover:text-destructive-foreground transition-colors"
+        >
+          Delete account
+        </button>
       </form>
     </AppShell>
   );
