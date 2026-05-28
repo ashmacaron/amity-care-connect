@@ -31,6 +31,27 @@ function Signup() {
       return toast.error(error.message);
     }
   
+    // Store profile with encrypted password in Railway
+    const userId = data.user?.id;
+    if (userId) {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/profiles/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: userId,
+          full_name: fullName,
+          email,
+          role,
+          password, // backend will hash this
+        })
+      });
+    }
+  
+    setLoading(false);
+    toast.success("Account created! Check your email to confirm.");
+    router.navigate({ to: "/login" });
+  };
+  
     // Create profile row in Railway PostgreSQL
     if (data.session) {
       await fetch(`${import.meta.env.VITE_API_URL}/api/profiles/me`, {
