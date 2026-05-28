@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Stethoscope } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/app-shell";
@@ -15,11 +15,13 @@ export const Route = createFileRoute("/app/doctor/profile")({
 
 function DocProfile() {
   const auth = useRequireAuth();
+  const router = useRouter();
   const [d, setD] = useState<any>({
     full_name: "", specialization: SPECS[0],
     bio: "", years_experience: 0, consultation_fee: 25
   });
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!auth.userId) return;
@@ -54,6 +56,25 @@ function DocProfile() {
     setSaving(false);
     if (!res.ok) return toast.error("Failed to save profile");
     toast.success("Profile saved.");
+  };
+
+  const deleteAccount = async () => {
+    if (!confirm("Are you sure you want to delete your doctor account? This cannot be undone.")) return;
+    setDeleting(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/profiles/me`,
+      {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${session?.access_token}` }
+      }
+    );
+    if (!res.ok) {
+      setDeleting(false);
+      return toast.error("Failed to delete account");
+    }
+    await supabase.auth.signOut();
+    router.navigate({ to: "/" });
   };
 
   if (auth.loading) return null;
@@ -96,6 +117,10 @@ function DocProfile() {
         <button disabled={saving}
           className="w-full rounded-xl bg-primary py-4 text-lg font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60">
           {saving ? "Saving…" : "Save"}
+        </button>
+        <button type="button" onClick={deleteAccount} disabled={deleting}
+          className="w-full rounded-xl border border-destructive py-4 text-lg font-semibold text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors disabled:opacity-60">
+          {deleting ? "Deleting…" : "Delete account"}
         </button>
       </form>
     </AppShell>
