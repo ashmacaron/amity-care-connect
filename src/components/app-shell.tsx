@@ -1,4 +1,4 @@
-import { Link, useRouter } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   Home, Search, Sparkles, CalendarDays, FileText, User, LogOut,
@@ -40,7 +40,6 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
   return (
     <div className="min-h-dvh bg-background">
       <div className="mx-auto flex max-w-7xl flex-col lg:flex-row">
-        {/* Sidebar */}
         <aside className="relative z-10 lg:sticky lg:top-0 lg:h-dvh lg:w-72 border-b lg:border-b-0 lg:border-r border-sidebar-border bg-sidebar lg:overflow-y-auto">
           <div className="flex min-h-full flex-col gap-1 p-5">
             <Link to="/app" className="mb-4 flex items-center gap-2">
@@ -70,12 +69,8 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
               })}
             </nav>
 
-            {/* Sign out */}
             <div className="mt-auto pt-4 border-t border-sidebar-border">
-              
-                href="/signout"
-                className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-base font-medium text-muted-foreground hover:bg-destructive hover:text-destructive-foreground transition-colors"
-              >
+              <a href="/signout" className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-base font-medium text-muted-foreground hover:bg-destructive hover:text-destructive-foreground transition-colors">
                 <LogOut className="h-5 w-5" />
                 Sign out
               </a>
@@ -83,7 +78,6 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
           </div>
         </aside>
 
-        {/* Main */}
         <div className="relative z-0 flex-1 px-4 py-6 lg:px-10 lg:py-10">
           {children}
         </div>
@@ -95,7 +89,7 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
 export function PageHeader({ title, subtitle, icon: Icon }: {
   title: string;
   subtitle?: string;
-  icon?: React.ComponentType<{ className?: string }>
+  icon?: React.ComponentType<{ className?: string }>;
 }) {
   return (
     <header className="mb-8">
