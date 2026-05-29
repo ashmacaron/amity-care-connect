@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { User } from "lucide-react";
+import { User, FileText } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { useRequireAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,17 +20,28 @@ function Profile() {
   });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [prescriptions, setPrescriptions] = useState<any[]>([]);
 
   useEffect(() => {
     if (!auth.userId) return;
     const load = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+
+      // Load profile
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/api/profiles/me`,
         { headers: { Authorization: `Bearer ${session?.access_token}` } }
       );
       const data = await res.json();
       if (data) setP((prev: any) => ({ ...prev, ...data, birthday: data.birthday ?? "" }));
+
+      // Load prescriptions
+      const rxRes = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/prescriptions`,
+        { headers: { Authorization: `Bearer ${session?.access_token}` } }
+      );
+      const rxData = await rxRes.json();
+      if (Array.isArray(rxData)) setPrescriptions(rxData);
     };
     load();
   }, [auth.userId]);
@@ -76,41 +87,103 @@ function Profile() {
   };
 
   if (auth.loading) return null;
+
   return (
     <AppShell role={auth.role ?? "patient"}>
-      <PageHeader title="My profile" subtitle="Keep this up to date so doctors can help you better." icon={User} />
-      <form onSubmit={save} className="max-w-2xl space-y-4 rounded-3xl bg-card p-6 shadow-card">
-        {[
-          { k: "full_name", label: "Full name", type: "text" },
-          { k: "birthday", label: "Birthday", type: "date" },
-          { k: "weight_kg", label: "Weight (kg)", type: "number" },
-          { k: "height_cm", label: "Height (cm)", type: "number" },
-          { k: "phone", label: "Phone", type: "tel" },
-          { k: "address", label: "Address", type: "text" },
-        ].map((f) => (
-          <label key={f.k} className="block">
-            <span className="mb-1 block font-medium">{f.label}</span>
-            <input type={f.type} value={p[f.k] ?? ""}
-              onChange={(e) => setP({ ...p, [f.k]: e.target.value })}
-              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base" />
+      <PageHeader
+        title="My profile"
+        subtitle="Keep this up to date so doctors can help you better."
+        icon={User}
+      />
+
+      <div className="max-w-2xl space-y-6">
+
+        {/* Profile form */}
+        <form onSubmit={save} className="space-y-4 rounded-3xl bg-card p-6 shadow-card">
+          {[
+            { k: "full_name", label: "Full name", type: "text" },
+            { k: "birthday", label: "Birthday", type: "date" },
+            { k: "weight_kg", label: "Weight (kg)", type: "number" },
+            { k: "height_cm", label: "Height (cm)", type: "number" },
+            { k: "phone", label: "Phone", type: "tel" },
+            { k: "address", label: "Address", type: "text" },
+          ].map((f) => (
+            <label key={f.k} className="block">
+              <span className="mb-1 block font-medium">{f.label}</span>
+              <input
+                type={f.type}
+                value={p[f.k] ?? ""}
+                onChange={(e) => setP({ ...p, [f.k]: e.target.value })}
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base"
+              />
+            </label>
+          ))}
+          <label className="block">
+            <span className="mb-1 block font-medium">Basic medical history</span>
+            <textarea
+              rows={4}
+              value={p.medical_history ?? ""}
+              onChange={(e) => setP({ ...p, medical_history: e.target.value })}
+              placeholder="Allergies, conditions, medications…"
+              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base"
+            />
           </label>
-        ))}
-        <label className="block">
-          <span className="mb-1 block font-medium">Basic medical history</span>
-          <textarea rows={4} value={p.medical_history ?? ""}
-            onChange={(e) => setP({ ...p, medical_history: e.target.value })}
-            placeholder="Allergies, conditions, medications…"
-            className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base" />
-        </label>
-        <button disabled={saving}
-          className="w-full rounded-xl bg-primary py-4 text-lg font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60">
-          {saving ? "Saving…" : "Save"}
-        </button>
-        <button type="button" onClick={deleteAccount} disabled={deleting}
-          className="w-full rounded-xl border border-destructive py-4 text-lg font-semibold text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors disabled:opacity-60">
-          {deleting ? "Deleting…" : "Delete account"}
-        </button>
-      </form>
+          <button
+            disabled={saving}
+            className="w-full rounded-xl bg-primary py-4 text-lg font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
+          >
+            {saving ? "Saving…" : "Save"}
+          </button>
+          <button
+            type="button"
+            onClick={deleteAccount}
+            disabled={deleting}
+            className="w-full rounded-xl border border-destructive py-4 text-lg font-semibold text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors disabled:opacity-60"
+          >
+            {deleting ? "Deleting…" : "Delete account"}
+          </button>
+        </form>
+
+        {/* Prescription history */}
+        <section className="rounded-3xl bg-card p-6 shadow-card">
+          <div className="mb-4 flex items-center gap-3">
+            <FileText className="h-5 w-5 text-primary" />
+            <h2 className="font-display text-xl font-semibold">Prescription History</h2>
+          </div>
+          {prescriptions.length === 0 ? (
+            <p className="text-muted-foreground">No prescriptions yet.</p>
+          ) : (
+            <div className="space-y-4">
+              {prescriptions.map((rx: any) => (
+                <div key={rx.id} className="rounded-2xl border border-border p-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="font-semibold">Dr. {rx.doctor_name}</p>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(rx.created_at).toLocaleDateString(undefined, { dateStyle: "medium" })}
+                    </span>
+                  </div>
+                  {rx.specialization && (
+                    <p className="mb-2 text-xs text-primary">{rx.specialization}</p>
+                  )}
+                  {rx.notes && (
+                    <div className="mb-2">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Notes</p>
+                      <p className="mt-1 text-sm">{rx.notes}</p>
+                    </div>
+                  )}
+                  {rx.prescription && (
+                    <div className="rounded-xl bg-primary-soft p-3">
+                      <p className="text-xs font-medium uppercase tracking-wide text-primary">Prescription</p>
+                      <p className="mt-1 text-sm">{rx.prescription}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+      </div>
     </AppShell>
   );
 }
