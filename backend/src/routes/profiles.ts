@@ -86,9 +86,18 @@ profilesRouter.post("/signup", async (req, res) => {
 // DELETE /api/profiles/me
 profilesRouter.delete("/me", requireAuth, async (req, res) => {
   try {
-    await db.query("DELETE FROM profiles WHERE id = $1", [req.user!.id]);
+    const userId = req.user!.id; // must be the UUID from auth.users
+
+    // 1. Delete from your profiles table
+    await db.query("DELETE FROM profiles WHERE id = $1", [userId]);
+
+    // 2. Delete from Supabase auth.users (requires service role)
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    if (error) throw error;
+
     res.json({ success: true });
   } catch (err) {
+    console.error(err); // <-- add this so you can see the actual error
     res.status(500).json({ error: "Failed to delete account" });
   }
 });
