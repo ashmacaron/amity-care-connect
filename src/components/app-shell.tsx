@@ -26,7 +26,6 @@ const doctorNav = [
 ] as const;
 
 export function AppShell({ children, role }: { children: React.ReactNode; role: Role }) {
-  const router = useRouter();
   const [name, setName] = useState("");
   const nav = role === "doctor" ? doctorNav : patientNav;
 
@@ -36,12 +35,7 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
     });
   }, []);
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/";
-  };
-
-  const path = router.state.location.pathname;
+  const path = typeof window !== "undefined" ? window.location.pathname : "";
 
   return (
     <div className="min-h-dvh bg-background">
@@ -76,13 +70,10 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
               })}
             </nav>
 
-            {/* Sign out button pushed to bottom */}
+            {/* Sign out */}
             <div className="mt-auto pt-4 border-t border-sidebar-border">
-              <button
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  window.location.replace("/");
-                }}
+              
+                href="/signout"
                 className="flex w-full items-center gap-3 rounded-xl px-4 py-3
                            text-base font-medium text-muted-foreground
                            hover:bg-destructive hover:text-destructive-foreground
@@ -90,7 +81,7 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
               >
                 <LogOut className="h-5 w-5" />
                 Sign out
-              </button>
+              </a>
             </div>
           </div>
         </aside>
