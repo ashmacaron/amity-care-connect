@@ -74,10 +74,7 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
             <div className="mt-auto pt-4 border-t border-sidebar-border">
               
                 href="/signout"
-                className="flex w-full items-center gap-3 rounded-xl px-4 py-3
-                           text-base font-medium text-muted-foreground
-                           hover:bg-destructive hover:text-destructive-foreground
-                           transition-colors"
+                className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-base font-medium text-muted-foreground hover:bg-destructive hover:text-destructive-foreground transition-colors"
               >
                 <LogOut className="h-5 w-5" />
                 Sign out
