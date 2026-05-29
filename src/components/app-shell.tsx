@@ -79,7 +79,10 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
             {/* Sign out button pushed to bottom */}
             <div className="mt-auto pt-4 border-t border-sidebar-border">
               <button
-                onClick={signOut}
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  window.location.replace("/");
+                }}
                 className="flex w-full items-center gap-3 rounded-xl px-4 py-3
                            text-base font-medium text-muted-foreground
                            hover:bg-destructive hover:text-destructive-foreground
@@ -89,7 +92,6 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
                 Sign out
               </button>
             </div>
-          </div>
         </aside>
 
         {/* Main */}
