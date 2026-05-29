@@ -92,6 +92,7 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
                 Sign out
               </button>
             </div>
+          </div>
         </aside>
 
         {/* Main */}
