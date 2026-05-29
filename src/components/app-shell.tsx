@@ -38,7 +38,7 @@ export function AppShell({ children, role }: { children: React.ReactNode; role: 
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    router.navigate({ to: "/" });
+    window.location.href = "/";
   };
 
   const path = router.state.location.pathname;
