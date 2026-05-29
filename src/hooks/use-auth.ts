@@ -16,16 +16,17 @@ export function useAuth(): AuthState {
 
   useEffect(() => {
     let mounted = true;
+
     const load = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         if (mounted) setState({ loading: false, userId: null, email: null, role: null });
         return;
       }
-      // Read role from user_metadata set during signup
       const role = (user.user_metadata?.role === "doctor" ? "doctor" : "patient") as "doctor" | "patient";
       if (mounted) setState({ loading: false, userId: user.id, email: user.email ?? null, role });
     };
+
     load();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => load());
     return () => { mounted = false; subscription.unsubscribe(); };
@@ -37,8 +38,14 @@ export function useAuth(): AuthState {
 export function useRequireAuth() {
   const auth = useAuth();
   const router = useRouter();
+
   useEffect(() => {
-    if (!auth.loading && !auth.userId) router.navigate({ to: "/login" });
+    if (!auth.loading && !auth.userId) {
+      if (window.location.pathname.startsWith("/app")) {
+        router.navigate({ to: "/login" });
+      }
+    }
   }, [auth.loading, auth.userId, router]);
+
   return auth;
 }
