@@ -58,7 +58,7 @@ function DocProfile() {
     toast.success("Profile saved.");
   };
 
-  /*const deleteAccount = async () => {
+  const deleteAccount = async () => {
     if (!confirm("Are you sure you want to delete your doctor account? This cannot be undone.")) return;
     setDeleting(true);
     const { data: { session } } = await supabase.auth.getSession();
@@ -75,7 +75,7 @@ function DocProfile() {
     }
     await supabase.auth.signOut();
     router.navigate({ to: "/" });
-  };*/
+  };
 
   if (auth.loading) return null;
   return (
