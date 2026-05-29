@@ -1,10 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Sparkles, Loader2 } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/app-shell";
 import { useRequireAuth } from "@/hooks/use-auth";
-import { recommendSpecialization } from "@/lib/ai.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
