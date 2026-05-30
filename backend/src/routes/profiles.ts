@@ -1,5 +1,3 @@
-// backend/src/routes/profiles.ts
-
 import { Router } from "express";
 import { db } from "../db";
 import { requireAuth } from "../middleware/auth";
@@ -26,12 +24,12 @@ profilesRouter.post("/me", requireAuth, async (req, res) => {
   try {
     const {
       full_name, birthday, weight_kg,
-      height_cm, phone, address, medical_history
+      height_cm, phone, address, medical_history, avatar_url
     } = req.body;
 
     const { rows } = await db.query(
-      `INSERT INTO profiles (id, full_name, birthday, weight_kg, height_cm, phone, address, medical_history)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO profiles (id, full_name, birthday, weight_kg, height_cm, phone, address, medical_history, avatar_url)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        ON CONFLICT (id) DO UPDATE SET
          full_name = EXCLUDED.full_name,
          birthday = EXCLUDED.birthday,
@@ -39,17 +37,13 @@ profilesRouter.post("/me", requireAuth, async (req, res) => {
          height_cm = EXCLUDED.height_cm,
          phone = EXCLUDED.phone,
          address = EXCLUDED.address,
-         medical_history = EXCLUDED.medical_history
+         medical_history = EXCLUDED.medical_history,
+         avatar_url = EXCLUDED.avatar_url
        RETURNING *`,
       [
-        req.user!.id,
-        full_name,
-        birthday || null,
-        weight_kg || null,
-        height_cm || null,
-        phone,
-        address,
-        medical_history
+        req.user!.id, full_name, birthday || null,
+        weight_kg || null, height_cm || null,
+        phone, address, medical_history, avatar_url || null
       ]
     );
     res.json(rows[0]);
@@ -59,12 +53,11 @@ profilesRouter.post("/me", requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/profiles/signup — called right after Supabase signup
+// POST /api/profiles/signup
 profilesRouter.post("/signup", async (req, res) => {
   try {
     const { id, full_name, email, role, password } = req.body;
     const password_hash = await bcrypt.hash(password, 10);
-
     const { rows } = await db.query(
       `INSERT INTO profiles (id, full_name, email, role, password_hash)
        VALUES ($1, $2, $3, $4, $5)
@@ -83,23 +76,29 @@ profilesRouter.post("/signup", async (req, res) => {
   }
 });
 
+// GET /api/profiles/:id — doctor views a patient's profile
+profilesRouter.get("/:id", requireAuth, async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      `SELECT id, full_name, email, birthday, weight_kg, height_cm,
+              phone, address, medical_history, avatar_url, created_at
+       FROM profiles WHERE id = $1`,
+      [req.params.id]
+    );
+    if (!rows[0]) return res.status(404).json({ error: "Patient not found" });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error("GET patient profile error:", err);
+    res.status(500).json({ error: "Failed to fetch patient profile" });
+  }
+});
+
 // DELETE /api/profiles/me
 /*profilesRouter.delete("/me", requireAuth, async (req, res) => {
   try {
-    const userId = req.user!.id; // must be the UUID from auth.users
-
-    // 1. Delete from your profiles table
-    await db.query("DELETE FROM profiles WHERE id = $1", [userId]);
-
-    // 2. Delete from Supabase auth.users (requires service role)
-    const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
-    if (error) throw error;
-
+    await db.query("DELETE FROM profiles WHERE id = $1", [req.user!.id]);
     res.json({ success: true });
   } catch (err) {
-    console.error(err); // <-- add this so you can see the actual error
     res.status(500).json({ error: "Failed to delete account" });
   }
 });*/
-
-
