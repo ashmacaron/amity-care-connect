@@ -24,12 +24,13 @@ profilesRouter.post("/me", requireAuth, async (req, res) => {
   try {
     const {
       full_name, birthday, weight_kg,
-      height_cm, phone, address, medical_history, avatar_url
+      height_cm, phone, address, medical_history,
+      avatar_url, prescription_images
     } = req.body;
 
     const { rows } = await db.query(
-      `INSERT INTO profiles (id, full_name, birthday, weight_kg, height_cm, phone, address, medical_history, avatar_url)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO profiles (id, full_name, birthday, weight_kg, height_cm, phone, address, medical_history, avatar_url, prescription_images)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        ON CONFLICT (id) DO UPDATE SET
          full_name = EXCLUDED.full_name,
          birthday = EXCLUDED.birthday,
@@ -38,12 +39,15 @@ profilesRouter.post("/me", requireAuth, async (req, res) => {
          phone = EXCLUDED.phone,
          address = EXCLUDED.address,
          medical_history = EXCLUDED.medical_history,
-         avatar_url = EXCLUDED.avatar_url
+         avatar_url = EXCLUDED.avatar_url,
+         prescription_images = EXCLUDED.prescription_images
        RETURNING *`,
       [
         req.user!.id, full_name, birthday || null,
         weight_kg || null, height_cm || null,
-        phone, address, medical_history, avatar_url || null
+        phone, address, medical_history,
+        avatar_url || null,
+        prescription_images || []
       ]
     );
     res.json(rows[0]);
