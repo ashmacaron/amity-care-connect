@@ -84,7 +84,7 @@ profilesRouter.post("/signup", async (req, res) => {
 });
 
 // DELETE /api/profiles/me
-profilesRouter.delete("/me", requireAuth, async (req, res) => {
+/*profilesRouter.delete("/me", requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id; // must be the UUID from auth.users
 
@@ -100,4 +100,6 @@ profilesRouter.delete("/me", requireAuth, async (req, res) => {
     console.error(err); // <-- add this so you can see the actual error
     res.status(500).json({ error: "Failed to delete account" });
   }
-});
+});*/
+
+
