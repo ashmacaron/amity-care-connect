@@ -47,3 +47,20 @@ prescriptionsRouter.post("/", requireAuth, async (req, res) => {
     res.status(500).json({ error: "Failed to save" });
   }
 });
+
+// GET /api/prescriptions/patient/:patientId — doctor views a patient's prescription history
+prescriptionsRouter.get("/patient/:patientId", requireAuth, async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      `SELECT p.*, d.full_name as doctor_name, d.specialization
+       FROM prescriptions p
+       JOIN doctors d ON d.id = p.doctor_id
+       WHERE p.patient_id = $1
+       ORDER BY p.created_at DESC`,
+      [req.params.patientId]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch patient records" });
+  }
+});
