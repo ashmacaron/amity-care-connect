@@ -25,7 +25,7 @@ appointmentsRouter.get("/", requireAuth, async (req, res) => {
 appointmentsRouter.get("/doctor/mine", requireAuth, async (req, res) => {
   try {
     const { rows } = await db.query(
-      `SELECT a.*, p.full_name as patient_name
+      `SELECT a.*, p.full_name as patient_name, p.avatar_url
        FROM appointments a
        LEFT JOIN profiles p ON p.id = a.patient_id
        JOIN doctors d ON d.id = a.doctor_id
